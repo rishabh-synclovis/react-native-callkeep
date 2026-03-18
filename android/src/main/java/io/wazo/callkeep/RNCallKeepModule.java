@@ -435,13 +435,13 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
     }
 
     @ReactMethod
-    public void displayIncomingCall(String uuid, String number, String callerName) {
-        this.displayIncomingCall(uuid, number, callerName, false, null);
-    }
-
-    @ReactMethod
     public void displayIncomingCall(String uuid, String number, String callerName, boolean hasVideo) {
         this.displayIncomingCall(uuid, number, callerName, hasVideo, null);
+    }
+ 
+    // Helper overload for native / internal calls that don't need the hasVideo flag
+    public void displayIncomingCall(String uuid, String number, String callerName) {
+        this.displayIncomingCall(uuid, number, callerName, false, null);
     }
 
     public void displayIncomingCall(String uuid, String number, String callerName, boolean hasVideo, @Nullable Bundle payload) {
