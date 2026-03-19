@@ -436,15 +436,15 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
 
     @ReactMethod
     public void displayIncomingCall(String uuid, String number, String callerName, boolean hasVideo) {
-        this.displayIncomingCall(uuid, number, callerName, hasVideo, null);
-    }
- 
-    // Helper overload for native / internal calls that don't need the hasVideo flag
-    public void displayIncomingCall(String uuid, String number, String callerName) {
-        this.displayIncomingCall(uuid, number, callerName, false, null);
+        this.displayIncomingCallImpl(uuid, number, callerName, hasVideo, null);
     }
 
-    public void displayIncomingCall(String uuid, String number, String callerName, boolean hasVideo, @Nullable Bundle payload) {
+    // Helper overload for native / internal calls that don't need the hasVideo flag
+    public void displayIncomingCallInternal(String uuid, String number, String callerName) {
+        this.displayIncomingCallImpl(uuid, number, callerName, false, null);
+    }
+
+    public void displayIncomingCallImpl(String uuid, String number, String callerName, boolean hasVideo, @Nullable Bundle payload) {
         if (!isConnectionServiceAvailable() || !hasPhoneAccount()) {
             Log.w(TAG, "[RNCallKeepModule] displayIncomingCall ignored due to no ConnectionService or no phone account");
             return;
@@ -483,17 +483,17 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         conn.onAnswer();
     }
 
-    @ReactMethod
+    // Internal overload for native callers; not exported to JS (TurboModule requires unique method names)
     public void startCall(String uuid, String number, String callerName) {
-        this.startCall(uuid, number, callerName, false, null);
+        this.startCallImpl(uuid, number, callerName, false, null);
     }
 
     @ReactMethod
     public void startCall(String uuid, String number, String callerName, boolean hasVideo) {
-        this.startCall(uuid, number, callerName, hasVideo, null);
+        this.startCallImpl(uuid, number, callerName, hasVideo, null);
     }
 
-    public void startCall(String uuid, String number, String callerName, boolean hasVideo, @Nullable Bundle payload) {
+    public void startCallImpl(String uuid, String number, String callerName, boolean hasVideo, @Nullable Bundle payload) {
         Log.d(TAG, "[RNCallKeepModule] startCall called, uuid: " + uuid + ", number: " + number + ", callerName: " + callerName + ", payload: " + payload);
 
         if (!isConnectionServiceAvailable() || !hasPhoneAccount() || !hasPermissions() || number == null) {
