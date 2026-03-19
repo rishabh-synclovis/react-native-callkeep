@@ -1113,40 +1113,45 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
         return this.reactContext.getCurrentActivity();
     }
 
-    private void registerPhoneAccount(Context appContext) {
-        if (!isConnectionServiceAvailable()) {
-            Log.w(TAG, "[RNCallKeepModule] registerPhoneAccount ignored due to no ConnectionService");
-            return;
-        }
-
-        this.initializeTelecomManager();
-        Context context = this.getAppContext();
-        if (context == null) {
-            Log.w(TAG, "[RNCallKeepModule][registerPhoneAccount] no react context found.");
-            return;
-        }
-        String appName = this.getApplicationName(context);
-
-        PhoneAccount.Builder builder = new PhoneAccount.Builder(handle, appName);
-        if (isSelfManaged()) {
-            builder.setCapabilities(PhoneAccount.CAPABILITY_SELF_MANAGED);
-        }
-        else {
-            builder.setCapabilities(PhoneAccount.CAPABILITY_CALL_PROVIDER);
-        }
-
-        if (_settings != null && _settings.hasKey("imageName")) {
-            int identifier = appContext.getResources().getIdentifier(_settings.getString("imageName"), "drawable", appContext.getPackageName());
-            Icon icon = Icon.createWithResource(appContext, identifier);
-            builder.setIcon(icon);
-        }
-
-        PhoneAccount account = builder.build();
-
-        telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-
-        telecomManager.registerPhoneAccount(account);
+   private void registerPhoneAccount(Context appContext) {
+    if (!isConnectionServiceAvailable()) {
+        Log.w(TAG, "[RNCallKeepModule] registerPhoneAccount ignored due to no ConnectionService");
+        return;
     }
+
+    this.initializeTelecomManager();
+
+    Context context = this.getAppContext();
+    if (context == null) {
+        Log.w(TAG, "[RNCallKeepModule][registerPhoneAccount] no react context found.");
+        return;
+    }
+
+    String appName = this.getApplicationName(context);
+
+    // ✅ CREATE NEW HANDLE (IMPORTANT)
+    PhoneAccountHandle phoneAccountHandle = new PhoneAccountHandle(
+        new ComponentName(context, VoiceConnectionService.class),
+        appName
+    );
+
+    PhoneAccount.Builder builder = new PhoneAccount.Builder(phoneAccountHandle, appName);
+
+    if (isSelfManaged()) {
+        builder.setCapabilities(PhoneAccount.CAPABILITY_SELF_MANAGED);
+    } else {
+        builder.setCapabilities(PhoneAccount.CAPABILITY_CALL_PROVIDER);
+    }
+
+    PhoneAccount account = builder.build();
+
+    telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
+    telecomManager.registerPhoneAccount(account);
+
+    // ✅🔥 THIS LINE IS THE REAL FIX
+    handle = phoneAccountHandle;
+}
 
     public void sendEventToJS(String eventName, @Nullable WritableMap params) {
         boolean isBoundToJS = this.reactContext.hasActiveCatalystInstance();
